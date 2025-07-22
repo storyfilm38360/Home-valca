@@ -1,0 +1,21 @@
+{
+  "name": "Valca",
+  "short_name": "Valca",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

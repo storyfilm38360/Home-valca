@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <!-- Configuration pour rendre le site installable (PWA) -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maison Valca">
+<link rel="apple-touch-icon" href="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/icon-192.png">
+<head>
+  <meta charset="UTF-8" />
+  <title> Valca</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    video, img {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: none;
+    }
+    .visible {
+      display: block !important;
+    }
+    .dot {
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      animation: blink 1.2s infinite;
+      z-index: 10;
+      cursor: pointer;
+    }
+    .dot::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: -14px;
+  right: -14px;
+  bottom: -14px;
+}
+    .dot#obj7 {
+      background: yellow;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .hidden {
+      display: none !important;
+    }
+    #popup,
+    #popup2,
+    #popup3,
+    #popup4,
+    #popup5,
+    #popup6,
+    #popup7 {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 80%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 20;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #popup video,
+    #popup2 video,
+    #popup3 video,
+    #popup4 video,
+    #popup5 video,
+    #popup6 video,
+    #popup7 video {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      margin-bottom: 20px;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+      z-index: 999;
+    }
+#loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  z-index: 99999;
+}
+
+#loadingText {
+  opacity: 0;
+  animation: fadeInText 4s ease-in-out forwards;
+}
+  #loadingImage {
+  transition: opacity 0.5s ease;
+}  
+
+@keyframes fadeInText {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  33% { content: '.'; }
+  66% { content: '..'; }
+  100% { content: '...'; }
+  </style>
+</head>
+
+<body>
+
+<!-- Écran de chargement -->
+<div id="loader" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 22px; z-index: 99999; overflow: hidden;">
+  
+  <img id="loadingImage" src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/album.png?v=1745933898978" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none;" />
+  
+  <div id="loadingText">Valca Project</div>
+  
+  <div style="margin-top: 20px; width: 60%; background: rgba(255,255,255,0.2); border-radius: 50px; overflow: hidden; height: 6px;">
+    <div id="loadingBar" style="width: 0%; height: 100%; background: white;"></div>
+  </div>
+</div>
+<!-- Vidéo de maison visible au début -->
+<video id="v1" class="visible" autoplay loop muted playsinline>
+  <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/maisonv2.mp4?v=1749214600116" type="video/mp4" />
+</video>
+
+<!-- Vidéo du hall d'entrée -->
+<video id="v2" autoplay loop muted playsinline>
+  <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/2.mp4?v=1745232696697" type="video/mp4" />
+</video>
+
+<!-- Vidéo du grenier -->
+<video id="v3" autoplay loop muted playsinline>
+  <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/3.mp4?v=1745232693196" type="video/mp4" />
+</video>
+
+<!-- Ecran noir de verrouillage en mode portrait -->
+<div id="rotateScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; color: white; z-index: 9999; justify-content: center; align-items: center; text-align: center; font-size: 20px; padding: 20px;">
+  Veuillez tourner votre appareil en mode paysage pour continuer.
+</div>
+
+<!-- Points de navigation -->
+<div id="dot1" class="dot" style="top: 62%; left: 51%" onclick="showScene(2)"></div>
+<div id="dot2" class="dot hidden" style="top: 50%; left: 80%" onclick="showScene(3)"></div>
+
+<!-- Objets interactifs dans le grenier -->
+<div id="obj1" class="dot hidden" style="top: 68%; left: 66%" onclick="showPopup2()"></div>
+<div id="obj2" class="dot hidden" style="top: 53%; left: 22%" onclick="showPopup()"></div>
+<div id="obj3" class="dot hidden" style="top: 42%; left: 62%" onclick="showPopup3()"></div>
+<div id="obj4" class="dot hidden" style="top: 55%; left: 55%" onclick="showPopup4()"></div>
+<div id="obj5" class="dot hidden" style="top: 75%; left: 20%" onclick="showPopup5()"></div>
+<div id="obj6" class="dot hidden" style="top: 60%; left: 38%" onclick="showPopup6()"></div>
+
+<!-- Point jaune final -->
+<div id="obj7" class="dot hidden" style="top: 50%; left: 50%; transform: translate(-50%, -50%); background: yellow; z-index: 20" onclick="showPopup7()"></div>
+
+<!-- Ensuite viennent tes popups (popup1, popup2, etc.) -->
+<!-- POPUPS -->
+
+<!-- POPUP 1 - Home -->
+<div id="popup" class="popup">
+  <div class="close-btn" onclick="hidePopup()">✕</div>
+  <video id="popupVideo" muted loop playsinline style="display: none;">
+    <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/home.mp4?v=1745840752973" />
+  </video>
+</div>
+
+<!-- POPUP 2 - Song for Do -->
+<div id="popup2" class="popup">
+  <div class="close-btn" onclick="hidePopup2()">✕</div>
+  <video id="popupVideo2" muted loop playsinline style="display: none;">
+    <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/songdo.mp4?v=1745575460656" type="video/mp4" />
+  </video>
+</div>
+
+<!-- POPUP 3 - Light Comes Through -->
+<div id="popup3" class="popup">
+  <div class="close-btn" onclick="hidePopup3()">✕</div>
+  <video id="popupVideo3" muted loop playsinline style="display: none;">
+    <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/light%20come.mp4?v=1745486417744" type="video/mp4" />
+  </video>
+</div>
+
+<!-- POPUP 4 - Far Beyond the Stars -->
+<div id="popup4" class="popup">
+  <div class="close-btn" onclick="hidePopup4()">✕</div>
+  <video id="popupVideo4" muted loop playsinline style="display: none;">
+    <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/casa.mp4?v=1745316557155" type="video/mp4" />
+  </video>
+</div>
+
+<!-- POPUP 5 - Lucky Man -->
+<div id="popup5" class="popup">
+  <div class="close-btn" onclick="hidePopup5()">✕</div>
+  <video id="popupVideo5" muted loop playsinline style="display: none;">
+    <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/lucky.mp4?v=1745864917025" type="video/mp4" />
+  </video>
+</div>
+
+<!-- ✅ NOUVEAU POPUP 6 - The Dreamer -->
+<div id="popup6" class="popup">
+  <div class="close-btn" onclick="hidePopup6()">✕</div>
+  <video id="popupVideo6" muted loop playsinline style="display: none;">
+    <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/dream.mp4?v=1745934866811" type="video/mp4" />
+  </video>
+</div>
+
+<!-- ✅ POPUP 7 - Valca Final (ancien popup6 modifié) -->
+<div id="popup7" class="popup">
+  <div class="close-btn" onclick="hidePopup7()">✕</div>
+  <video id="popupVideo7" muted loop playsinline style="display: none;">
+    <source src="https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/valca.mp4?v=1745924120818" type="video/mp4" />
+  </video>
+  <button onclick="restartExperience()" style="position: absolute; bottom: 30px; right: 30px; padding: 12px 20px; background: rgba(255,255,255,0.1); color: white; border: 1px solid white; border-radius: 4px; font-size: 14px; cursor: pointer;">
+    ↺ Recommencer
+  </button>
+</div>
+  <script>
+function restartExperience() {
+  window.location.reload();
+}
+
+// Clics enregistrés
+let clicked = {
+  obj1: false,
+  obj2: false,
+  obj3: false,
+  obj4: false,
+  obj5: false,
+  obj6: false
+};
+
+// Révélation du point jaune après 6 clics
+function checkRevealObj7() {
+  if (Object.values(clicked).every(Boolean)) {
+    const el = document.getElementById("obj7");
+    el.classList.remove("hidden");
+    for (let i = 1; i <= 6; i++) {
+      const dot = document.getElementById("obj" + i);
+      if (dot) dot.classList.add("hidden");
+    }
+  }
+}
+
+// Sons musiques
+let audio1 = new Audio("https://cdn.glitch.me/469310d9-313a-4565-ada7-0e04a674cf0f/home.wav?v=1745232711989");
+let audio2 = new Audio("https://cdn.glitch.me/469310d9-313a-4565-ada7-0e04a674cf0f/Song%20Do%20(Valca)_Mix%20V2.wav?v=1745232736747");
+let audio3 = new Audio("https://cdn.glitch.me/469310d9-313a-4565-ada7-0e04a674cf0f/Light%20Comes%20Throught%20(Valca)_Mix%20V1.wav?v=1745234817888");
+let audio4 = new Audio("https://cdn.glitch.me/469310d9-313a-4565-ada7-0e04a674cf0f/Far%20Beyond%20The%20Star%20(Valca)_Mix%20V1.wav?v=1745482963467");
+let audio5 = new Audio("https://cdn.glitch.me/469310d9-313a-4565-ada7-0e04a674cf0f/Lucky%20Man(Lio)_Mix%20V3.wav?v=1745240084815");
+let audio6 = new Audio("https://cdn.glitch.me/469310d9-313a-4565-ada7-0e04a674cf0f/The%20Dreamer%20(Valca)_Mix%20V2.wav?v=1745581368513");
+
+// Sons d'ambiance
+let ambientMaison = new Audio("https://cdn.glitch.me/469310d9-313a-4565-ada7-0e04a674cf0f/windy.wav?v=1745232754368");
+ambientMaison.loop = true;
+ambientMaison.volume = 0.2;
+
+let hallSound = new Audio("https://cdn.glitch.me/469310d9-313a-4565-ada7-0e04a674cf0f/sonhall.mp3?v=1745232741197");
+hallSound.loop = true;
+hallSound.volume = 0.2;
+
+let ambientGrenier = new Audio("https://cdn.glitch.global/469310d9-313a-4565-ada7-0e04a674cf0f/documentary_loop_audio.mp3?v=1745479847750");
+ambientGrenier.loop = true;
+ambientGrenier.volume = 0.2;
+
+// Gestion des scènes (fond v1, v2, v3)
+function showScene(scene) {
+  for (let i = 1; i <= 3; i++) {
+    const v = document.getElementById("v" + i);
+    const dot = document.getElementById("dot" + i);
+    if (v) v.classList.remove("visible");
+    if (dot) dot.classList.add("hidden");
+  }
+  document.getElementById("v" + scene).classList.add("visible");
+  const d = document.getElementById("dot" + scene);
+  if (d) d.classList.remove("hidden");
+
+  if (scene === 3) {
+    for (let i = 1; i <= 6; i++) {
+      if (!clicked["obj" + i]) {
+        const dot = document.getElementById("obj" + i);
+        if (dot) dot.classList.remove("hidden");
+      }
+    }
+    ambientGrenier.play().catch(() => {});
+    hallSound.pause(); hallSound.currentTime = 0;
+    ambientMaison.pause(); ambientMaison.currentTime = 0;
+  } else if (scene === 2) {
+    hallSound.play().catch(() => {});
+    ambientGrenier.pause(); ambientGrenier.currentTime = 0;
+    ambientMaison.pause(); ambientMaison.currentTime = 0;
+  } else {
+    ambientMaison.play().catch(() => {});
+    hallSound.pause(); hallSound.currentTime = 0;
+    ambientGrenier.pause(); ambientGrenier.currentTime = 0;
+  }
+}
+<!-- Fonctions pour ouvrir et fermer chaque popup -->
+
+function showPopup() {
+  clicked.obj1 = true;
+  checkRevealObj7();
+  const popup = document.getElementById("popup");
+  const v = document.getElementById("popupVideo");
+  v.style.display = "block";
+  popup.style.display = "flex";
+  v.play();
+  ambientGrenier.pause();
+  ambientGrenier.currentTime = 0;
+  audio1.play();
+}
+
+function hidePopup() {
+  const popup = document.getElementById("popup");
+  const v = document.getElementById("popupVideo");
+  popup.style.display = "none";
+  v.pause();
+  v.currentTime = 0;
+  v.style.display = "none";
+  audio1.pause();
+  audio1.currentTime = 0;
+}
+
+function showPopup2() {
+  clicked.obj2 = true;
+  checkRevealObj7();
+  const popup = document.getElementById("popup2");
+  const v = document.getElementById("popupVideo2");
+  v.style.display = "block";
+  popup.style.display = "flex";
+  v.play();
+  ambientGrenier.pause();
+  ambientGrenier.currentTime = 0;
+  audio2.play();
+}
+
+function hidePopup2() {
+  const popup = document.getElementById("popup2");
+  const v = document.getElementById("popupVideo2");
+  popup.style.display = "none";
+  v.pause();
+  v.currentTime = 0;
+  v.style.display = "none";
+  audio2.pause();
+  audio2.currentTime = 0;
+}
+
+function showPopup3() {
+  clicked.obj3 = true;
+  checkRevealObj7();
+  const popup = document.getElementById("popup3");
+  const v = document.getElementById("popupVideo3");
+  v.style.display = "block";
+  popup.style.display = "flex";
+  v.play();
+  ambientGrenier.pause();
+  ambientGrenier.currentTime = 0;
+  audio3.play();
+}
+
+function hidePopup3() {
+  const popup = document.getElementById("popup3");
+  const v = document.getElementById("popupVideo3");
+  popup.style.display = "none";
+  v.pause();
+  v.currentTime = 0;
+  v.style.display = "none";
+  audio3.pause();
+  audio3.currentTime = 0;
+}
+
+function showPopup4() {
+  clicked.obj4 = true;
+  checkRevealObj7();
+  const popup = document.getElementById("popup4");
+  const v = document.getElementById("popupVideo4");
+  v.style.display = "block";
+  popup.style.display = "flex";
+  v.play();
+  ambientGrenier.pause();
+  ambientGrenier.currentTime = 0;
+  audio4.play();
+}
+
+function hidePopup4() {
+  const popup = document.getElementById("popup4");
+  const v = document.getElementById("popupVideo4");
+  popup.style.display = "none";
+  v.pause();
+  v.currentTime = 0;
+  v.style.display = "none";
+  audio4.pause();
+  audio4.currentTime = 0;
+}
+
+function showPopup5() {
+  clicked.obj5 = true;
+  checkRevealObj7();
+  const popup = document.getElementById("popup5");
+  const v = document.getElementById("popupVideo5");
+  v.style.display = "block";
+  popup.style.display = "flex";
+  v.play();
+  ambientGrenier.pause();
+  ambientGrenier.currentTime = 0;
+  audio5.play();
+}
+
+function hidePopup5() {
+  const popup = document.getElementById("popup5");
+  const v = document.getElementById("popupVideo5");
+  popup.style.display = "none";
+  v.pause();
+  v.currentTime = 0;
+  v.style.display = "none";
+  audio5.pause();
+  audio5.currentTime = 0;
+}
+
+function showPopup6() {
+  clicked.obj6 = true;
+  checkRevealObj7();
+  const popup = document.getElementById("popup6");
+  const v = document.getElementById("popupVideo6");
+  v.style.display = "block";
+  popup.style.display = "flex";
+  v.play();
+  ambientGrenier.pause();
+  ambientGrenier.currentTime = 0;
+  audio6.play();
+}
+
+function hidePopup6() {
+  const popup = document.getElementById("popup6");
+  const v = document.getElementById("popupVideo6");
+  popup.style.display = "none";
+  v.pause();
+  v.currentTime = 0;
+  v.style.display = "none";
+  audio6.pause();
+  audio6.currentTime = 0;
+}
+
+function showPopup7() {
+  const popup = document.getElementById("popup7");
+  const v = document.getElementById("popupVideo7");
+  v.style.display = "block";
+  popup.style.display = "flex";
+  v.play();
+}
+
+function hidePopup7() {
+  const popup = document.getElementById("popup7");
+  const v = document.getElementById("popupVideo7");
+  popup.style.display = "none";
+  v.pause();
+  v.currentTime = 0;
+  v.style.display = "none";
+
+  // ➡️ Réaffiche tous les objets 1 à 6
+  for (let i = 1; i <= 6; i++) {
+    const dot = document.getElementById("obj" + i);
+    if (dot) {
+      dot.classList.remove("hidden");
+    }
+  }
+}
+</script> 
+  <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(function() {
+      console.log('✅ Service Worker enregistré');
+    })
+    .catch(function(error) {
+      console.error('❌ Erreur Service Worker:', error);
+    });
+}
+</script>
+  <script>
+function checkOrientation() {
+  const rotateScreen = document.getElementById("rotateScreen");
+  if (window.innerHeight > window.innerWidth) {
+    // Mode portrait → on affiche le message
+    rotateScreen.style.display = "flex";
+  } else {
+    // Mode paysage → on cache le message
+    rotateScreen.style.display = "none";
+  }
+}
+
+// Vérifie au chargement de la page
+window.addEventListener("load", checkOrientation);
+// Vérifie à chaque changement d'orientation
+window.addEventListener("resize", checkOrientation);
+</script>
+ <script>
+document.addEventListener("DOMContentLoaded", function() {
+  const loadingBar = document.getElementById("loadingBar");
+  let width = 0;
+
+  const interval = setInterval(function() {
+    width += 0.3; // ➡️ Avancer moins vite
+    loadingBar.style.width = width + "%";
+    if (width >= 98) { // ➡️ Monte jusqu'à 98% seulement
+      clearInterval(interval);
+    }
+  }, 20); // ➡️ toutes les 20ms (plus fluide)
+
+});
+
+window.addEventListener("load", function() {
+  const loader = document.getElementById("loader");
+  const loadingBar = document.getElementById("loadingBar");
+  loadingBar.style.width = "100%";
+  setTimeout(function() {
+    loader.style.display = "none";
+  }, 300);
+});
+</script>
+
+window.addEventListener("load", function() {
+  const loader = document.getElementById("loader");
+  const loadingBar = document.getElementById("loadingBar");
+  loadingBar.style.width = "100%";
+  setTimeout(function() {
+    loader.style.display = "none";
+  }, 300); // Petit délai pour laisser finir l'animation
+});
+  <script>
+document.addEventListener("DOMContentLoaded", function() {
+  const loadingBar = document.getElementById("loadingBar");
+  const assets = [
+    ...document.querySelectorAll('video'),
+    ...document.querySelectorAll('audio'),
+    ...document.querySelectorAll('img')
+  ];
+  
+  const totalAssets = assets.length;
+  let assetsLoaded = 0;
+
+  function updateLoadingBar() {
+  assetsLoaded++;
+  const progress = (assetsLoaded / totalAssets) * 100;
+  loadingBar.style.width = progress + "%";
+  
+  const loadingImage = document.getElementById("loadingImage");
+  loadingImage.style.opacity = (progress / 100);
+
+  if (assetsLoaded === totalAssets) {
+    setTimeout(function() {
+      document.getElementById("loader").style.display = "none";
+    }, 300);
+  }
+}
+
+  assets.forEach(asset => {
+    if (asset.tagName === 'VIDEO') {
+      asset.addEventListener('loadeddata', updateLoadingBar, { once: true });
+    } else if (asset.tagName === 'AUDIO') {
+      asset.addEventListener('loadedmetadata', updateLoadingBar, { once: true });
+    } else if (asset.tagName === 'IMG') {
+      asset.addEventListener('load', updateLoadingBar, { once: true });
+    }
+  });
+});
+</script>
+  <script>
+document.addEventListener("DOMContentLoaded", function() {
+  const loadingBar = document.getElementById("loadingBar");
+  const loadingImage = document.getElementById("loadingImage");
+  const assets = [
+    ...document.querySelectorAll('video'),
+    ...document.querySelectorAll('audio'),
+    ...document.querySelectorAll('img')
+  ];
+  
+  const totalAssets = assets.length;
+  let assetsLoaded = 0;
+
+  function updateLoadingBar() {
+    assetsLoaded++;
+    const progress = (assetsLoaded / totalAssets) * 100;
+    
+    // Mise à jour de la barre de chargement
+    loadingBar.style.width = progress + "%";
+
+    // Mise à jour de l'opacité de l'image de fond
+    loadingImage.style.opacity = progress / 100;
+
+    // Quand tout est chargé
+    if (assetsLoaded === totalAssets) {
+      setTimeout(function() {
+        document.getElementById("loader").style.display = "none";
+      }, 500); // petit délai pour fluidifier
+    }
+  }
+
+  assets.forEach(asset => {
+    if (asset.tagName === 'VIDEO') {
+      asset.addEventListener('loadeddata', updateLoadingBar, { once: true });
+    } else if (asset.tagName === 'AUDIO') {
+      asset.addEventListener('loadedmetadata', updateLoadingBar, { once: true });
+    } else if (asset.tagName === 'IMG') {
+      asset.addEventListener('load', updateLoadingBar, { once: true });
+    }
+  });
+});
+</script>
+  </body> <!-- ← ici la balise body se ferme -->
+</html> <!-- ← ici la balise html se ferme -->
